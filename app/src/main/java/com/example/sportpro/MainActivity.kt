@@ -3,6 +3,7 @@ package com.example.sportpro
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    LoginScreen()
+                    MainApp()
                 }
             }
         }
@@ -61,7 +62,56 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun MainApp() {
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Login) }
+
+    BackHandler(enabled = currentScreen !is Screen.Login) {
+        currentScreen = when (currentScreen) {
+            is Screen.RegisterForm -> Screen.RoleSelection
+            is Screen.RoleSelection -> Screen.Login
+            else -> Screen.Login
+        }
+    }
+
+    when (val screen = currentScreen) {
+        is Screen.Login -> {
+            LoginScreen(
+                onNavigateToRegister = {
+                    currentScreen = Screen.RoleSelection
+                },
+            )
+        }
+
+        is Screen.RoleSelection -> {
+            RoleSelectionScreen(
+                onRoleSelected = { selectedRole ->
+                    currentScreen = Screen.RegisterForm(selectedRole)
+                },
+                onBackToLogin = {
+                    currentScreen = Screen.Login
+                },
+            )
+        }
+
+        is Screen.RegisterForm -> {
+            RegisterScreen(
+                role = screen.role,
+                onRegisterSuccess = {
+                    currentScreen = Screen.Login
+                },
+                onBack = {
+                    currentScreen = Screen.RoleSelection
+                },
+            )
+        }
+    }
+}
+
+@Composable
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    onNavigateToRegister: () -> Unit = {},
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -192,9 +242,7 @@ fun LoginScreen(modifier: Modifier = Modifier) {
                 fontSize = 14.sp,
             )
             TextButton(
-                onClick = {
-                    Toast.makeText(context, "Navegar a Registro", Toast.LENGTH_SHORT).show()
-                },
+                onClick = onNavigateToRegister,
             ) {
                 Text(
                     text = "Regístrate",
