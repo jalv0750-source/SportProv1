@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SportPro"
+rootProject.name = "PeruFCPro"
 include(":app")
  
