@@ -67,6 +67,7 @@ fun MainApp() {
 
     BackHandler(enabled = currentScreen !is Screen.Login) {
         currentScreen = when (currentScreen) {
+            is Screen.MainHome -> Screen.Login
             is Screen.RegisterForm -> Screen.RoleSelection
             is Screen.RoleSelection -> Screen.Login
             else -> Screen.Login
@@ -76,6 +77,9 @@ fun MainApp() {
     when (val screen = currentScreen) {
         is Screen.Login -> {
             LoginScreen(
+                onLoginSuccess = {
+                    currentScreen = Screen.MainHome
+                },
                 onNavigateToRegister = {
                     currentScreen = Screen.RoleSelection
                 },
@@ -97,12 +101,16 @@ fun MainApp() {
             RegisterScreen(
                 role = screen.role,
                 onRegisterSuccess = {
-                    currentScreen = Screen.Login
+                    currentScreen = Screen.MainHome
                 },
                 onBack = {
                     currentScreen = Screen.RoleSelection
                 },
             )
+        }
+
+        is Screen.MainHome -> {
+            MainHomeScreen()
         }
     }
 }
@@ -110,6 +118,7 @@ fun MainApp() {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    onLoginSuccess: () -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
@@ -199,6 +208,7 @@ fun LoginScreen(
                                     "¡Bienvenido ${user?.email ?: ""}!",
                                     Toast.LENGTH_LONG,
                                 ).show()
+                                onLoginSuccess()
                             } else {
                                 val errorMessage =
                                     task.exception?.localizedMessage ?: "Error al iniciar sesión"
